@@ -10,6 +10,9 @@ from .dataset import BasicDataset
 
 import torchvision
 from torchvision import datasets, transforms
+from PIL import Image
+import PIL
+import random
 
 mean, std = {}, {}
 mean['cifar10'] = [x / 255 for x in [125.3, 123.0, 113.9]]
@@ -29,7 +32,33 @@ def get_transform(mean, std, train=True):
         return transforms.Compose([transforms.ToTensor(), 
                                      transforms.Normalize(mean, std)])
 
-    
+
+class Translate_x(object):
+    def __init__(self, magnitude=0.125):
+        v = random.uniform(0, magnitude)
+        v = v * random.choice([-1, 1])
+        self.v = v
+
+    def __call__(self, img):
+        return img.transform(img.size, PIL.Image.AFFINE, (1, 0, self.v*img.size[0], 0, 1, 0))
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(v={})'.format(self.v)
+
+
+class Translate_y(object):
+    def __init__(self, magnitude=0.125):
+        v = random.uniform(0, magnitude)
+        v = v * random.choice([-1, 1])
+        self.v = v
+
+    def __call__(self, img):
+        return img.transform(img.size, PIL.Image.AFFINE, (1, 0, 0, 0, 1, self.v*img.size[1]))
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(v={})'.format(self.v)
+
+
 class SSL_Dataset:
     """
     SSL_Dataset class gets dataset (cifar10, cifar100) from torchvision.datasets,
